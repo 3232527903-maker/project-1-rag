@@ -1,0 +1,21 @@
+# Web 框架（第 4 周封装 API 用）
+fastapi
+uvicorn[standard]
+
+# LangChain 生态
+langchain
+langchain-openai
+langchain-community
+
+# 向量库
+pymilvus
+
+# 配置加载
+python-dotenv
+
+# 文档解析（Day 2 用）
+pymupdf
+python-docx
+
+# 测试
+pytest
