@@ -33,11 +33,11 @@ class Settings:
     # ===== 生成模型（DeepSeek）=====
     DEEPSEEK_API_KEY: str = os.getenv("DEEPSEEK_API_KEY", "")
     DEEPSEEK_BASE_URL: str = os.getenv("DEEPSEEK_BASE_URL", "https://api.deepseek.com")
-    DEEPSEEK_MODEL: str = os.getenv("DEEPSEEK_MODEL", "deepseek-chat")
+    DEEPSEEK_MODEL: str = os.getenv("DEEPSEEK_MODEL", "deepseek-v4-flash")
 
-    # ===== Embedding（通义 text-embedding-v3）=====
+    # ===== Embedding（通义 qwen3.7-text-embedding）=====
     DASHSCOPE_API_KEY: str = os.getenv("DASHSCOPE_API_KEY", "")
-    EMBEDDING_MODEL: str = os.getenv("EMBEDDING_MODEL", "text-embedding-v3")
+    EMBEDDING_MODEL: str = os.getenv("EMBEDDING_MODEL", "qwen3.7-text-embedding")
 
     # ===== 向量库（Milvus Lite）=====
     MILVUS_URI: str = os.getenv("MILVUS_URI", "./milvus_lite.db")
