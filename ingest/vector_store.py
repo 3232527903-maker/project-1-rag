@@ -31,7 +31,7 @@ from config.settings import settings
 
 COLLECTION_NAME = "rag_docs"
 TEXT_MAX_LENGTH = 1024   # 512 字 chunk 留 2 倍余量
-BATCH_SIZE = 64          # 批量插入/向量化的每批条数
+BATCH_SIZE = 20          # 批量向量化的每批条数：DashScope embedding 单批上限 20（超过报 400）
 
 
 def _make_client(uri: str | None = None) -> MilvusClient:
@@ -106,7 +106,11 @@ def search(client: MilvusClient, query_vec: list[float], top_k: int = 5,
     返回的每个元素形如：
         {"id": ..., "distance": 0.87, "entity": {"text": ..., "source": ..., "title": ..., "chunk_index": 3}}
     distance 在 COSINE 度量下越接近 1 越相关。
+
+    Milvus 坑：search/query 前必须先 load_collection()（把集合加载进内存），
+    否则报 code=101 "Collection is in state 'released'"。load 是幂等的，重复调用无害。
     """
+    client.load_collection(collection_name)
     res = client.search(
         collection_name=collection_name,
         data=[query_vec],

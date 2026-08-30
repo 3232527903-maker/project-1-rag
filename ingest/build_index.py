@@ -32,7 +32,8 @@ def main() -> None:
     print(f"Embedding 维度: {dim}")
     ensure_collection(client, dim=dim)
 
-    # 3) 分批向量化 + 插入（每批 64 条，防 API 限流；单批失败只重试这一批）
+    # 3) 分批向量化 + 插入（每批 20 条：DashScope embedding 单批上限 20，超过报 400；
+    #    小批也便于单批失败只重试这一批）
     total = len(chunks)
     inserted = 0
     for i in range(0, total, BATCH_SIZE):

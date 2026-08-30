@@ -40,7 +40,10 @@ class Settings:
     EMBEDDING_MODEL: str = os.getenv("EMBEDDING_MODEL", "qwen3.7-text-embedding")
 
     # ===== 向量库（Milvus Lite）=====
-    MILVUS_URI: str = os.getenv("MILVUS_URI", "./milvus_lite.db")
+    # 注意：不能用键名 MILVUS_URI——pymilvus 3.x import 时会自动加载 .env，
+    # 读到本地文件路径会把它当远程地址解析而崩溃（Illegal uri: ./xxx.db）。
+    # 自定义 MILVUS_LOCAL_DB 只供本项目读取，避免与 pymilvus 的环境变量冲突。
+    MILVUS_LOCAL_DB: str = os.getenv("MILVUS_LOCAL_DB", "./milvus_lite.db")
 
 
 # 模块级单例：整个项目 import 同一个 settings 实例，避免重复加载 .env
