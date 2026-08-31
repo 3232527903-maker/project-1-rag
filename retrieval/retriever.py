@@ -13,3 +13,34 @@
 # def retrieve(query: str, top_k: int = 4) -> list[dict]:
 #     """检索与 query 最相关的 top_k 个片段，返回 [{text, metadata, score}, ...]。"""
 #     raise NotImplementedError("Day 5 实现")
+import sys
+from pathlib import Path
+
+if __package__ in (None, ""):
+    sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+
+from ingest.embedder import embed_query
+from ingest.vector_store import _make_client, search
+
+def retrieve(query: str, top_k: int = 4) -> list[dict]:
+    """检索与 query 最相关的 top_k 个片段，返回 [{text, metadata, score}, ...]。"""
+    client = _make_client()
+    vec = embed_query(query)
+    hits = search(client,vec,top_k = top_k)
+    result = []
+    for h in hits:
+        entity = h.get('entity',{})
+        result.append(
+            {
+                'text' :entity.get('text',''),
+                'source' :entity.get('source',''),
+                'title' :entity.get('title',''),
+                'chunk_index' :entity.get('chunk_index',''),
+                'score':round(h.get('distance',0.0),4)
+            }
+        )
+    return result
+if __name__ == "__main__":
+    import json
+    rs = retrieve("如何配置模型 API Key？", top_k=3)
+    print(json.dumps(rs, ensure_ascii=False, indent=2))
