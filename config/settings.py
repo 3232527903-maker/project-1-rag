@@ -43,7 +43,13 @@ class Settings:
     # 注意：不能用键名 MILVUS_URI——pymilvus 3.x import 时会自动加载 .env，
     # 读到本地文件路径会把它当远程地址解析而崩溃（Illegal uri: ./xxx.db）。
     # 自定义 MILVUS_LOCAL_DB 只供本项目读取，避免与 pymilvus 的环境变量冲突。
-    MILVUS_LOCAL_DB: str = os.getenv("MILVUS_LOCAL_DB", "./milvus_lite.db")
+    #
+    # 坑（2026-08-31）：默认值必须是「基于 BASE_DIR 的绝对路径」。
+    # 之前用相对路径 ./milvus_lite.db，会在「当前工作目录」下找库文件——
+    # 终端在项目根跑没问题，但 PyCharm 右键运行 search.py 时工作目录是 retrieval/，
+    # 于是去 retrieval/milvus_lite.db 找 → 报「Collection 不存在」。
+    # 绝对路径不依赖工作目录，任何入口都能命中同一个库。
+    MILVUS_LOCAL_DB: str = os.getenv("MILVUS_LOCAL_DB", str(BASE_DIR / "milvus_lite.db"))
 
 
 # 模块级单例：整个项目 import 同一个 settings 实例，避免重复加载 .env

@@ -11,7 +11,13 @@ from retrieval.retriever import retrieve
 
 def ask(question: str, top_k: int = 4) -> None:
     print(f"Q: {question}")
-    contexts = retrieve(question, top_k=top_k)
+    try:
+        contexts = retrieve(question, top_k=top_k)
+    except Exception as e:
+        print(f"[检索失败] {type(e).__name__}: {e}")
+        print("请检查向量库（Milvus）是否已启动、数据是否已入库。")
+        return
+
     if not contexts:
         print("未检索到相关内容，请检查向量库是否已入库。")
         return
@@ -20,7 +26,12 @@ def ask(question: str, top_k: int = 4) -> None:
     for c in contexts:
         print(f"  [{c['title']}] 第{c['chunk_index']}段 score={c['score']}")
 
-    answer = generate(contexts, question)
+    try:
+        answer = generate(contexts, question)
+    except Exception as e:
+        print(f"[生成失败] {type(e).__name__}: {e}")
+        print("请检查网络 / API Key / 模型余额后重试。")
+        return
     print(f"\nA: {answer}")
 
     print("\n--- 引用来源 ---")

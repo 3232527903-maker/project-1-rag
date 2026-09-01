@@ -116,6 +116,7 @@ def load_all(raw_dir: Path = RAW_DIR, skip_empty: bool = True) -> list[Document]
 if __name__ == "__main__":
     docs = load_all()
     print(f"共解析 {len(docs)} 篇文档\n")
+
     total_chars = sum(len(d.text) for d in docs)
     print(f"总字符数: {total_chars}")
     print("前 3 篇示例:")

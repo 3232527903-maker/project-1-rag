@@ -9,12 +9,13 @@
 """
 
 import sys
+import time
 from pathlib import Path
 
 if __package__ in (None, ""):
     sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
-from openai import OpenAI
+from openai import OpenAI, APITimeoutError, APIConnectionError, RateLimitError
 
 from config.settings import settings
 
@@ -35,8 +36,18 @@ def _build_context(contexts: list[dict]) -> str:
         parts.append(f"[{i}] 来源：{ctx['title']}（{ctx['source']}）\n{ctx['text']}")
     return "\n\n".join(parts)
 
-def generate(contexts: list[dict], question: str, temperature: float = 0.3) -> str:
-    """基于检索上下文 + 问题，调用 LLM 生成答案。"""
+def generate(
+    contexts: list[dict],
+    question: str,
+    temperature: float = 0.3,
+    max_retries: int = 2,
+) -> str:
+    """基于检索上下文 + 问题，调用 LLM 生成答案。
+
+    容错分级（Day 6 新增，面试考点）：
+    - 可重试（网络类）：超时 / 连接失败 / 限流(429) -> 指数退避重试
+    - 不可重试（业务类）：401 鉴权失败、400 参数错误 -> 重试也没用，直接抛出
+    """
     context_text = _build_context(contexts)
     # 注意：user_prompt 必须是「字符串」！之前误写成 [f"..."]（列表），
     # content 会被序列化成裸字符串数组 ["..."],DeepSeek 报
@@ -45,15 +56,23 @@ def generate(contexts: list[dict], question: str, temperature: float = 0.3) -> s
         f"以下是相关资料：\n{context_text}\n\n"
         f"请仅依据上述资料回答问题：{question}"
     )
-    resp = _client.chat.completions.create(
-        model=settings.DEEPSEEK_MODEL,
-        messages=[
-            {"role": "system", "content": SYSTEM_PROMPT},
-            {"role": "user", "content": user_prompt},
-        ],
-        temperature=temperature,
-    )
-    return resp.choices[0].message.content
+    # 只重试「网络类」错误：超时 / 连接失败 / 限流
+    retryable = (APITimeoutError, APIConnectionError, RateLimitError)
+    for attempt in range(max_retries + 1):
+        try:
+            resp = _client.chat.completions.create(
+                model=settings.DEEPSEEK_MODEL,
+                messages=[
+                    {"role": "system", "content": SYSTEM_PROMPT},
+                    {"role": "user", "content": user_prompt},
+                ],
+                temperature=temperature,
+            )
+            return resp.choices[0].message.content
+        except retryable:
+            if attempt == max_retries:
+                raise  # 重试耗尽，交给上层兜底
+            time.sleep(1 + attempt)  # 退避：等 1s、2s
 if __name__ == '__main__':
     import json
     from retrieval.retriever import retrieve

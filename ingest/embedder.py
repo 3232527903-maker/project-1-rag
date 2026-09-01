@@ -70,7 +70,6 @@ def probe_dimension(sample: str = "向量维度探测") -> int:
     vec = embed_texts([sample])[0]
     return len(vec)
 
-
 if __name__ == "__main__":
     dim = probe_dimension()
     print(f"模型 {settings.EMBEDDING_MODEL} 输出维度: {dim}")
