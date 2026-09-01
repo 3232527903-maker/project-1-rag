@@ -76,5 +76,6 @@ def generate(
 if __name__ == '__main__':
     import json
     from retrieval.retriever import retrieve
-    contexts = retrieve("如何配置模型 API Key？", top_k=3)  # 直接传 list[dict]
-    print(generate(contexts=contexts, question="如何调用大模型 API？"))
+    question = "如何配置模型 API Key？"
+    contexts = retrieve(question, top_k=3)  # 检索与生成用同一问题，避免演示时防幻觉误触发
+    print(generate(contexts=contexts, question=question))
